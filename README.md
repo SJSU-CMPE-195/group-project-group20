@@ -1,4 +1,5 @@
-# Project Title
+
+# **GPT-Powered Meal-Planning**
 
 > One-line description of what your project does
 
@@ -9,9 +10,9 @@
 | Name 1 | [@username](https://github.com/username) | name@sjsu.edu |
 | Name 2 | [@username](https://github.com/username) | name@sjsu.edu |
 | Name 3 | [@username](https://github.com/username) | name@sjsu.edu |
-| Name 4 | [@username](https://github.com/username) | name@sjsu.edu |
+| Zihao He | [@zihaohe2022](https://github.com/zihaohe2022) | zihao.he01@sjsu.edu |
 
-**Advisor:** [Advisor Name]
+**Advisor:** [Jun Liu]
 
 ---
 
