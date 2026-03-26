@@ -65,3 +65,48 @@ fun AppScreen() {
         )
     }
 }
+
+//text fields for numerical inputs later (age, weight, etc) -Eric
+
+@Composable
+fun NumberField(
+    label: String,
+    value: String,
+    onChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { input ->
+            val filtered = input.filter { it.isDigit() }
+            onChange(filtered)
+        },
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
+}
+
+//fitness goal handling, basic three button select for some basic options for now -Eric
+
+@Composable
+fun GoalSelector(selected: String, onSelect: (String) -> Unit) {
+    val goals = listOf("Lose Weight", "Maintain", "Gain Muscle")
+
+    Column {
+        Text("Goal", style = MaterialTheme.typography.titleMedium)
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            goals.forEach { goal ->
+                Button(
+                    onClick = { onSelect(goal) },
+                    colors = if (goal == selected)
+                        ButtonDefaults.buttonColors()
+                    else
+                        ButtonDefaults.outlinedButtonColors()
+                ) {
+                    Text(goal)
+                }
+            }
+        }
+    }
+}

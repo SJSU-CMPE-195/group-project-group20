@@ -15,6 +15,7 @@
 - I personally recommend Cold Booting via Tools -> Device Manager -> Cold Boot every time just in case, also wipe device memory each time for a fresh test
 
 # Immediate future plans (3-20-26, version 1, frame)
-- Add input fields (age, height, sex, etc.)
 - Set BMR calculation
+- Create calendar screen
+- Comment more code for future proof
 
