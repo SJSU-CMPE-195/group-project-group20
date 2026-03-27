@@ -1,7 +1,7 @@
 
 # **GPT-Powered Meal-Planning**
 
-> One-line description of what your project does
+> A GPT-powered meal planning app that assists users in crafting day-to-day diet plans
 
 ## Team
 
@@ -12,23 +12,22 @@
 | Name 3 | [@username](https://github.com/username) | name@sjsu.edu |
 | Zihao He | [@zihaohe2022](https://github.com/zihaohe2022) | zihao.he01@sjsu.edu |
 
-**Advisor:** [Jun Liu]
+**Advisor:** Jun Liu
 
 ---
 
 ## Problem Statement
 
-[2-3 sentences describing the problem you're solving and why it matters]
+The tradional way for diet control with restrictive dieting and calorie restriction is not pratical effective. As a result, it may lead to slower metabolisms or even an increased likelihood of binge eating. 
 
 ## Solution
 
-[2-3 sentences describing your solution approach]
+We try to build a GPT-powered meal planning app that assists users in crafting day-to-day diet plans for users just beginning their fitness journey.
 
 ### Key Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- Health Tracking
+- Meal Planning Calendar
 
 ---
 
