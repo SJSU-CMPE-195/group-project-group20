@@ -3,10 +3,25 @@ package com.fitfuel.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions //(keep unused for now -Eric)
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -32,13 +47,15 @@ fun AppScreen() {
     var caloriesBurned by remember { mutableStateOf("") }
 
     var goal by remember { mutableStateOf("Maintain") }
+    var sex by remember { mutableStateOf("Male") }
 
     val calorieTarget = calculateCalories(
-        weight.toIntOrNull(),
-        height.toIntOrNull(),
-        age.toIntOrNull(),
-        caloriesBurned.toIntOrNull(),
-        goal
+        weight = weight.toIntOrNull(),
+        height = height.toIntOrNull(),
+        age = age.toIntOrNull(),
+        burned = caloriesBurned.toIntOrNull(),
+        goal = goal,
+        sex = sex
     )
 
     Column(
@@ -47,18 +64,26 @@ fun AppScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("FitFuel", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = "FitFuel",
+            style = MaterialTheme.typography.headlineMedium
+        )
 
         NumberField("Weight (kg)", weight) { weight = it }
         NumberField("Height (cm)", height) { height = it }
         NumberField("Age", age) { age = it }
         NumberField("Calories Burned Today", caloriesBurned) { caloriesBurned = it }
 
-        GoalSelector(goal) { goal = it }
+        SexSelector(selected = sex, onSelect = { sex = it })
+        GoalSelector(selected = goal, onSelect = { goal = it })
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Daily Calorie Target:", style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = "Daily Calorie Target:",
+            style = MaterialTheme.typography.titleMedium
+        )
+
         Text(
             text = calorieTarget?.toString() ?: "Enter all values",
             style = MaterialTheme.typography.headlineSmall
@@ -86,23 +111,62 @@ fun NumberField(
     )
 }
 
+//user selects their sex here, this will change BMR calculations -Eric
+
+@Composable
+fun SexSelector(
+    selected: String,
+    onSelect: (String) -> Unit
+) {
+    val options = listOf("Male", "Female")
+
+    Column {
+        Text(
+            text = "Sex",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.forEach { option ->
+                Button(
+                    onClick = { onSelect(option) },
+                    colors = if (option == selected) {
+                        ButtonDefaults.buttonColors()
+                    } else {
+                        ButtonDefaults.outlinedButtonColors()
+                    }
+                ) {
+                    Text(option)
+                }
+            }
+        }
+    }
+}
+
 //fitness goal handling, basic three button select for some basic options for now -Eric
 
 @Composable
-fun GoalSelector(selected: String, onSelect: (String) -> Unit) {
+fun GoalSelector(
+    selected: String,
+    onSelect: (String) -> Unit
+) {
     val goals = listOf("Lose Weight", "Maintain", "Gain Muscle")
 
     Column {
-        Text("Goal", style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = "Goal",
+            style = MaterialTheme.typography.titleMedium
+        )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             goals.forEach { goal ->
                 Button(
                     onClick = { onSelect(goal) },
-                    colors = if (goal == selected)
+                    colors = if (goal == selected) {
                         ButtonDefaults.buttonColors()
-                    else
+                    } else {
                         ButtonDefaults.outlinedButtonColors()
+                    }
                 ) {
                     Text(goal)
                 }
@@ -111,17 +175,30 @@ fun GoalSelector(selected: String, onSelect: (String) -> Unit) {
     }
 }
 
+//added field for "if female" case and calculation -Eric
+
 fun calculateCalories(
     weight: Int?,
     height: Int?,
     age: Int?,
     burned: Int?,
-    goal: String
+    goal: String,
+    sex: String
 ): Int? {
     if (weight == null || height == null || age == null) return null
 
-    //simplified Mifflin-St Jeor equation for male usage only. Placeholder, add female implementation as well as sophisticated calculation later -Eric
-    val bmr = ((10 * weight) + (6.25 * height) - (5 * age) + 5).toInt()
+    val bmr = when (sex) {
+        "Female" -> (
+            (10 * weight) +
+            (6.25 * height) -
+            (5 * age) - 161
+        )
+        else -> (
+            (10 * weight) +
+            (6.25 * height) -
+            (5 * age) + 5
+        )
+    }.toInt()
 
     val adjustment = when (goal) {
         "Lose Weight" -> -400
