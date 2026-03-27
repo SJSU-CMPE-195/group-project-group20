@@ -9,7 +9,7 @@
 |------|--------|-------|
 | Tanish Shah | [@stanish28](https://github.com/stanish28) | tanish.shah@sjsu.edu |
 | Ishan Sikka  | [@ishansikka](https://github.com/username) | ishan.sikka@sjsu.edu |
-| Name 3 | [@username](https://github.com/username) | name@sjsu.edu |
+| Name 3 | [@erttransjsu](https://github.com/erttransjsu) | eric.tran05@sjsu.edu |
 | Zihao He | [@zihaohe2022](https://github.com/zihaohe2022) | zihao.he01@sjsu.edu |
 
 **Advisor:** Jun Liu
