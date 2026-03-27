@@ -110,3 +110,24 @@ fun GoalSelector(selected: String, onSelect: (String) -> Unit) {
         }
     }
 }
+
+fun calculateCalories(
+    weight: Int?,
+    height: Int?,
+    age: Int?,
+    burned: Int?,
+    goal: String
+): Int? {
+    if (weight == null || height == null || age == null) return null
+
+    //simplified Mifflin-St Jeor equation for male usage only. Placeholder, add female implementation as well as sophisticated calculation later -Eric
+    val bmr = ((10 * weight) + (6.25 * height) - (5 * age) + 5).toInt()
+
+    val adjustment = when (goal) {
+        "Lose Weight" -> -400
+        "Gain Muscle" -> 300
+        else -> 0
+    }
+
+    return bmr + (burned ?: 0) + adjustment
+}

@@ -15,7 +15,8 @@
 - I personally recommend Cold Booting via Tools -> Device Manager -> Cold Boot every time just in case, also wipe device memory each time for a fresh test
 
 # Immediate future plans (3-20-26, version 1, frame)
-- Set BMR calculation
+- Touch up on BMR calculation, add option for female calculation
+- Add field for suggested macro intake
 - Create calendar screen
 - Comment more code for future proof
 
