@@ -29,6 +29,10 @@ We try to build a GPT-powered meal planning app that assists users in crafting d
 - Health Tracking
 - Meal Planning Calendar
 
+### Hardware integration
+
+Fitness band connectivity—BLE transport from band to phone/PC (prototype status and implementation path) for Hardware and Software—is described in [docs/hardware-fitness-band-connectivity.md](docs/hardware-fitness-band-connectivity.md).
+
 ---
 
 ## Demo
