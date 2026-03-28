@@ -1,0 +1,2 @@
+# Optional: regenerate .docx files from the Python generators
+python-docx>=1.0.0

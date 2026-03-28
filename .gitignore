@@ -160,4 +160,7 @@ docker-data/
 # ===========================
 # Project Specific
 # ===========================
+# Microsoft Word lock files while a document is open
+~$*.docx
+
 # Add project-specific ignores below
