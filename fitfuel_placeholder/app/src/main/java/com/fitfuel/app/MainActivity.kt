@@ -405,25 +405,17 @@ fun CalendarScreen(
             columns = GridCells.Fixed(7),
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            userScrollEnabled = true
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(days) { date ->
                 if (date == null) {
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                    )
+                    Box(modifier = Modifier.aspectRatio(1f))
                 } else {
-                    val isToday = date == today
-                    val isSelected = date == selectedDate
-                    val hasSavedEntry = entries.containsKey(date)
-
                     CalendarDayCell(
                         date = date,
-                        isToday = isToday,
-                        isSelected = isSelected,
-                        hasSavedEntry = hasSavedEntry,
+                        isToday = date == today,
+                        isSelected = date == selectedDate,
+                        hasSavedEntry = entries.containsKey(date),
                         onClick = { onSelectDate(date) }
                     )
                 }
@@ -433,7 +425,7 @@ fun CalendarScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Tap a day to edit that day's calories and save them.",
+            text = "Tap a day to edit that day's saved calorie and protein data.",
             style = MaterialTheme.typography.bodyMedium
         )
     }
