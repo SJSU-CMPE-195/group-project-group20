@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -53,6 +55,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 data class DayEntry(
@@ -61,14 +64,17 @@ data class DayEntry(
     val age: String = "",
     val caloriesBurned: String = "",
     val caloriesEaten: String = "",
+    val proteinEaten: String = "",
     val sex: String = "Male",
     val goal: String = "Maintain",
     val calorieTarget: Int? = null,
-    val remainingCalories: Int? = null
+    val remainingCalories: Int? = null,
+    val proteinTarget: Int? = null,
+    val remainingProtein: Int? = null
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -81,8 +87,18 @@ class MainActivity : ComponentActivity() {
 
                     val dayEntries = remember { mutableStateMapOf<LocalDate, DayEntry>() }
 
-                    val pagerState = rememberPagerState(pageCount = { 2 })
+                    val pagerState = rememberPagerState(pageCount = { 3 })
                     val scope = rememberCoroutineScope()
+
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        TopNavigationBar(
+                            currentPage = pagerState.currentPage,
+                            onNavigate = { page ->
+                                scope.launch {
+                                    pagerState.animateScrollToPage(page)
+                                }
+                            }
+                        )
 
                     HorizontalPager(
                         state = pagerState,
@@ -97,6 +113,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onGoToCalendar = {
                                     scope.launch { pagerState.animateScrollToPage(1) }
+                                    },
+                                    onGoToUser = {
+                                        scope.launch { pagerState.animateScrollToPage(2) }
                                 }
                             )
 
@@ -117,6 +136,12 @@ class MainActivity : ComponentActivity() {
                                     scope.launch { pagerState.animateScrollToPage(0) }
                                 }
                             )
+
+                                2 -> UserStatsScreen(
+                                    today = today,
+                                    entries = dayEntries
+                                )
+                            }
                         }
                     }
                 }
