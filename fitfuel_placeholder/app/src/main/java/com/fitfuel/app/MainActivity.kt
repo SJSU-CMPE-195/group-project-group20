@@ -151,6 +151,53 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun TopNavigationBar(
+    currentPage: Int,
+    onNavigate: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        NavButton(
+            text = "Daily",
+            selected = currentPage == 0,
+            onClick = { onNavigate(0) }
+        )
+        NavButton(
+            text = "Calendar",
+            selected = currentPage == 1,
+            onClick = { onNavigate(1) }
+        )
+        NavButton(
+            text = "User",
+            selected = currentPage == 2,
+            onClick = { onNavigate(2) }
+        )
+    }
+}
+
+@Composable
+fun NavButton(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        colors = if (selected) {
+            ButtonDefaults.buttonColors()
+        } else {
+            ButtonDefaults.outlinedButtonColors()
+        }
+    ) {
+        Text(text)
+    }
+}
+
+@Composable
 fun DailyCalculationScreen(
     selectedDate: LocalDate,
     savedEntry: DayEntry?,
