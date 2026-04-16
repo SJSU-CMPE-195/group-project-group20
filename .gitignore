@@ -164,3 +164,7 @@ docker-data/
 ~$*.docx
 
 # Add project-specific ignores below
+/.lh
+/.history
+/fitfuel_placeholder/local.properties
+fitfuel_placeholder/local.properties
