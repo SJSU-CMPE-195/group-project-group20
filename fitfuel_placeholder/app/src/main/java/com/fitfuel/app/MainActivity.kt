@@ -155,13 +155,15 @@ fun DailyCalculationScreen(
     selectedDate: LocalDate,
     savedEntry: DayEntry?,
     onSaveEntry: (DayEntry) -> Unit,
-    onGoToCalendar: () -> Unit
+    onGoToCalendar: () -> Unit,
+    onGoToUser: () -> Unit
 ) {
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var caloriesBurned by remember { mutableStateOf("") }
     var caloriesEaten by remember { mutableStateOf("") }
+    var proteinEaten by remember { mutableStateOf("") }
     var goal by remember { mutableStateOf("Maintain") }
     var sex by remember { mutableStateOf("Male") }
 
@@ -171,6 +173,7 @@ fun DailyCalculationScreen(
         age = savedEntry?.age ?: ""
         caloriesBurned = savedEntry?.caloriesBurned ?: ""
         caloriesEaten = savedEntry?.caloriesEaten ?: ""
+        proteinEaten = savedEntry?.proteinEaten ?: ""
         goal = savedEntry?.goal ?: "Maintain"
         sex = savedEntry?.sex ?: "Male"
     }
@@ -184,11 +187,18 @@ fun DailyCalculationScreen(
         sex = sex
     )
 
+    val proteinTarget = calculateProtein(
+        weight = weight.toIntOrNull(),
+        goal = goal
+    )
+
     val remainingCalories = calorieTarget?.minus(caloriesEaten.toIntOrNull() ?: 0)
+    val remainingProtein = proteinTarget?.minus(proteinEaten.toIntOrNull() ?: 0)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -202,8 +212,13 @@ fun DailyCalculationScreen(
             style = MaterialTheme.typography.titleMedium
         )
 
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onClick = onGoToCalendar) {
             Text("Open Calendar")
+            }
+            OutlinedButton(onClick = onGoToUser) {
+                Text("User Stats")
+            }
         }
 
         NumberField("Weight (kg)", weight) { weight = it }
@@ -211,11 +226,10 @@ fun DailyCalculationScreen(
         NumberField("Age", age) { age = it }
         NumberField("Calories Burned Today", caloriesBurned) { caloriesBurned = it }
         NumberField("Calories Eaten Today", caloriesEaten) { caloriesEaten = it }
+        NumberField("Protein Eaten Today (g)", proteinEaten) { proteinEaten = it }
 
         SexSelector(selected = sex, onSelect = { sex = it })
         GoalSelector(selected = goal, onSelect = { goal = it })
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -238,6 +252,28 @@ fun DailyCalculationScreen(
                     text = remainingCalories?.toString() ?: "Enter calories eaten",
                     style = MaterialTheme.typography.headlineSmall
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Daily Protein Target (g)",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = proteinTarget?.toString() ?: "Enter weight",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Remaining Protein (g)",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = remainingProtein?.toString() ?: "Enter protein eaten",
+                    style = MaterialTheme.typography.headlineSmall
+                )
             }
         }
 
@@ -250,10 +286,13 @@ fun DailyCalculationScreen(
                         age = age,
                         caloriesBurned = caloriesBurned,
                         caloriesEaten = caloriesEaten,
+                        proteinEaten = proteinEaten,
                         sex = sex,
                         goal = goal,
                         calorieTarget = calorieTarget,
-                        remainingCalories = remainingCalories
+                        remainingCalories = remainingCalories,
+                        proteinTarget = proteinTarget,
+                        remainingProtein = remainingProtein
                     )
                 )
             },
