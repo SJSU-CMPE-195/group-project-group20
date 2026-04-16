@@ -672,17 +672,9 @@ fun calculateCalories(
     if (weight == null || height == null || age == null) return null
 
     val bmr = when (sex) {
-        "Female" -> (
-            (10 * weight) +
-            (6.25 * height) -
-            (5 * age) - 161
-        )
-        else -> (
-            (10 * weight) +
-            (6.25 * height) -
-            (5 * age) + 5
-        )
-    }.toInt()
+        "Female" -> ((10 * weight) + (6.25 * height) - (5 * age) - 161).toInt()
+        else -> ((10 * weight) + (6.25 * height) - (5 * age) + 5).toInt()
+    }
 
     val adjustment = when (goal) {
         "Lose Weight" -> -400
@@ -692,3 +684,40 @@ fun calculateCalories(
 
     return bmr + (burned ?: 0) + adjustment
 }
+
+//handles protein calculation. add this in gradually similarly to the user screen
+fun calculateProtein(
+    weight: Int?,
+    goal: String
+): Int? {
+    if (weight == null) return null
+
+    val multiplier = when (goal) {
+        "Lose Weight" -> 2.0
+        "Gain Muscle" -> 2.2
+        else -> 1.6
+    }
+
+    return (weight * multiplier).toInt()
+}
+
+//handles the calendar cells on the calendar screen.
+
+fun buildCalendarCells(month: YearMonth): List<LocalDate?> {
+    val firstDay = month.atDay(1)
+    val daysInMonth = month.lengthOfMonth()
+    val startOffset = firstDay.dayOfWeek.value % 7
+
+    val cells = mutableListOf<LocalDate?>()
+
+    repeat(startOffset) {
+        cells.add(null)
+    }
+
+    for (day in 1..daysInMonth) {
+        cells.add(month.atDay(day))
+    }
+
+    return cells
+}
+
