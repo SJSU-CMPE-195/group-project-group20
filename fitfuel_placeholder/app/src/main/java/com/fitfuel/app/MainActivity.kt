@@ -431,6 +431,73 @@ fun CalendarScreen(
     }
 }
 
+//handles the User screen
+
+@Composable
+fun UserStatsScreen(
+    today: LocalDate,
+    entries: Map<LocalDate, DayEntry>
+) {
+    val savedDays = entries.keys.sorted()
+
+    val firstDate = savedDays.firstOrNull()
+    val daysElapsed = if (firstDate != null) {
+        ChronoUnit.DAYS.between(firstDate, today).toInt()
+    } else {
+        0
+    }
+
+    val totalCaloriesBurned = entries.values.sumOf { it.caloriesBurned.toIntOrNull() ?: 0 }
+    val totalCaloriesEaten = entries.values.sumOf { it.caloriesEaten.toIntOrNull() ?: 0 }
+    val totalProteinTarget = entries.values.sumOf { it.proteinTarget ?: 0 }
+    val totalProteinEaten = entries.values.sumOf { it.proteinEaten.toIntOrNull() ?: 0 }
+    val totalRemainingProtein = entries.values.sumOf { it.remainingProtein ?: 0 }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "User Stats",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Days Since Start: $daysElapsed", style = MaterialTheme.typography.titleMedium)
+                Text("Journey Start Date: ${firstDate ?: "No data yet"}")
+                Text("Saved Days: ${entries.size}")
+            }
+        }
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Cumulative Calories Burned: $totalCaloriesBurned", style = MaterialTheme.typography.titleMedium)
+                Text("Cumulative Calories Eaten: $totalCaloriesEaten", style = MaterialTheme.typography.titleMedium)
+                Text("Cumulative Protein Target (g): $totalProteinTarget", style = MaterialTheme.typography.titleMedium)
+                Text("Cumulative Protein Eaten (g): $totalProteinEaten", style = MaterialTheme.typography.titleMedium)
+                Text("Cumulative Remaining Protein (g): $totalRemainingProtein", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Preferred Meal Tags", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    label = { Text("No preferred tags yet") }
+                )
+            }
+        }
+    }
+}
+
+
 @Composable
 fun WeekHeader() {
     val days = listOf(
