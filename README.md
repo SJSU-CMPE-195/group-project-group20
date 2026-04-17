@@ -24,10 +24,22 @@ The tradional way for diet control with restrictive dieting and calorie restrict
 
 We try to build a GPT-powered meal planning app that assists users in crafting day-to-day diet plans for users just beginning their fitness journey.
 
+## Project Description
+
+This project is a simple calendar-based meal-planning app that lets the user input their fitness goals and their consumed calories/protein for a selected day choosable via the calendar screen. The app will return the remaining calories/protein needed for consumption to fit the user's goals for the selected day. The user can go to the "User" screen to see their net calories/protein consumed and days allotted since the beginning of their fitness journey.
+
+## Proof-of-Concept Scope
+
+This proof of concept demonstrates the general flow of the app we have in mind. It provides the framework for the main "gimmick" of our app--that is, this app is what is built around the main GPT module. The proof of concept shows what can be done in-app and locally, and provides the majority of what the app will do for the user (including a stub for the Recommendation implementation that will demo how GPT will present meals to the user). We do NOT have persistent information storage quite yet (that will come with Room implementation) nor do we have GPT implementation/the tagging system, as this PoC is meant to demonstrate the app's "core" functionalities first.
+
+## What's Next?
+
+For our next implementation, we plan on adding our Python backend, Room implementation for persistent user info storage, actual OpenAI API calling, and basic GPT recommendation module. For our final implementation, we'll have a smart tagging system to learn what the user likes, and let GPT assign the user meals based off those tags and their nutrient/fitness goals as parameters. We will also implement auto-input of user info with our paired hardware.
+
 ### Key Features
 
 - Health Tracking
-- Meal Planning Calendar
+- Meal Planning/Calorie and Protein Tracking Calendar
 
 ### Hardware integration
 
@@ -37,9 +49,7 @@ Fitness band connectivity—BLE transport from band to phone/PC (prototype statu
 
 ## Demo
 
-[Link to demo video or GIF]
-
-**Live Demo:** [URL if deployed]
+**Live Demo:** https://drive.google.com/file/d/1-pBeTOaMbrHi1RQev1v0bt4YqWlTw0h_/view?usp=sharing
 
 ---
 
@@ -47,8 +57,8 @@ Fitness band connectivity—BLE transport from band to phone/PC (prototype statu
 
 | Feature | Screenshot |
 |---------|------------|
-| [Feature 1] | ![Screenshot](docs/screenshots/feature1.png) |
-| [Feature 2] | ![Screenshot](docs/screenshots/feature2.png) |
+| Health Tracking: https://drive.google.com/file/d/1ZfnkbrlzSUaJ7U2VvPX1gIpAkA2S9n_j/view?usp=sharing |
+| Calendar: https://drive.google.com/file/d/13qHX_4FFrsgPrwX6ExgOlaICDS_ZCfcI/view?usp=sharing |
 
 ---
 
@@ -56,10 +66,11 @@ Fitness band connectivity—BLE transport from band to phone/PC (prototype statu
 
 | Category | Technology |
 |----------|------------|
-| Frontend | |
-| Backend | |
-| Database | |
-| Deployment | |
+| Frontend | Kotlin |
+| Backend | Python (planned) |
+| Database | Room (planned), SQLite (planned) |
+| Deployment | Android Studio |
+| Build	| Gradle |
 
 ---
 
@@ -67,8 +78,14 @@ Fitness band connectivity—BLE transport from band to phone/PC (prototype statu
 
 ### Prerequisites
 
-- [Prerequisite 1] v.X.X+
-- [Prerequisite 2] v.X.X+
+- Android Studio (stable)
+- SDK 35
+- Gradle v8.11.1
+- AGP v8.9.2
+- AVD Emulator (provided by Andorid Studio)
+- Compose enabled
+- Desugaring enabled
+- Dependencies synced
 
 ### Installation
 
@@ -77,30 +94,29 @@ Fitness band connectivity—BLE transport from band to phone/PC (prototype statu
 git clone https://github.com/[org]/[repo].git
 cd [repo]
 
-# Install dependencies
-[install command]
+# Open the project in Android Studio
+# File > Open > select the project folder
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your values
-
-# Run database migrations (if applicable)
-[migration command]
+# Let Gradle sync automatically
+# If it does not, click:
+# File > Sync Project with Gradle Files
 ```
 
 ### Running Locally
 
 ```bash
-# Development mode
-[dev command]
-
-# The app will be available at http://localhost:XXXX
+# Build the debug APK
+./gradlew assembleDebug
 ```
 
 ### Running Tests
 
 ```bash
-[test command]
+# Run local unit tests
+./gradlew test
+
+# Run instrumented Android tests on an emulator/device
+./gradlew connectedAndroidTest
 ```
 
 ---
@@ -119,42 +135,6 @@ cp .env.example .env
 | DELETE | `/api/resource/:id` | Delete resource |
 
 </details>
-
----
-
-## Project Structure
-
-```
-.
-├── [folder]/           # Description
-├── src/                # Source code files
-├── tests/              # Test files
-├── docs/               # Documentation files
-└── README.md
-```
-
----
-
-## Contributing
-
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Commit your changes (`git commit -m 'Add amazing feature'`)
-3. Push to the branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request
-
-### Branch Naming
-
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation updates
-- `refactor/` - Code refactoring
-
-### Commit Messages
-
-Use clear, descriptive commit messages:
-- `Add user authentication endpoint`
-- `Fix database connection timeout issue`
-- `Update README with setup instructions`
 
 ---
 

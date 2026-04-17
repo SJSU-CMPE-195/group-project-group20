@@ -48,6 +48,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.fitfuel.app.model.DayEntry
+import com.fitfuel.app.model.Meal
+import com.fitfuel.app.ui.RecommendationScreen
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -55,21 +58,9 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-
-data class DayEntry(
-    val weight: String = "",
-    val height: String = "",
-    val age: String = "",
-    val caloriesBurned: String = "",
-    val caloriesEaten: String = "",
-    val proteinEaten: String = "",
-    val sex: String = "Male",
-    val goal: String = "Maintain",
-    val calorieTarget: Int? = null,
-    val remainingCalories: Int? = null,
-    val proteinTarget: Int? = null,
-    val remainingProtein: Int? = null
-)
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
@@ -82,60 +73,62 @@ class MainActivity : ComponentActivity() {
                     val today = remember { LocalDate.now() }
                     var selectedDate by remember { mutableStateOf(today) }
                     var displayedMonth by remember { mutableStateOf(YearMonth.now()) }
-
                     val dayEntries = remember { mutableStateMapOf<LocalDate, DayEntry>() }
 
-                    val pagerState = rememberPagerState(pageCount = { 3 })
+                    val pagerState = rememberPagerState(pageCount = { 4 })
                     val scope = rememberCoroutineScope()
 
                     Column(modifier = Modifier.fillMaxSize()) {
                         TopNavigationBar(
                             currentPage = pagerState.currentPage,
                             onNavigate = { page ->
-                                scope.launch {
-                                    pagerState.animateScrollToPage(page)
-                                }
+                                scope.launch { pagerState.animateScrollToPage(page) }
                             }
                         )
 
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize()
-                    ) { page ->
-                        when (page) {
-                            0 -> DailyCalculationScreen(
-                                selectedDate = selectedDate,
-                                savedEntry = dayEntries[selectedDate],
-                                onSaveEntry = { entry ->
-                                    dayEntries[selectedDate] = entry
-                                },
-                                onGoToCalendar = {
-                                    scope.launch { pagerState.animateScrollToPage(1) }
-                                    },
-                                    onGoToUser = {
-                                        scope.launch { pagerState.animateScrollToPage(2) }
-                                }
-                            )
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize()
+                        ) { page ->
+                            when (page) {
+                                0 -> DailyCalculationScreen(
+                                    selectedDate = selectedDate,
+                                    savedEntry = dayEntries[selectedDate],
+                                    onSaveEntry = { entry -> dayEntries[selectedDate] = entry }
+                                )
 
-                            1 -> CalendarScreen(
-                                today = today,
-                                selectedDate = selectedDate,
-                                displayedMonth = displayedMonth,
-                                entries = dayEntries,
-                                onPreviousMonth = {
-                                    displayedMonth = displayedMonth.minusMonths(1)
-                                },
-                                onNextMonth = {
-                                    displayedMonth = displayedMonth.plusMonths(1)
-                                },
-                                onSelectDate = { date ->
-                                    selectedDate = date
-                                    displayedMonth = YearMonth.from(date)
-                                    scope.launch { pagerState.animateScrollToPage(0) }
-                                }
-                            )
+                                1 -> CalendarScreen(
+                                    today = today,
+                                    selectedDate = selectedDate,
+                                    displayedMonth = displayedMonth,
+                                    entries = dayEntries,
+                                    onPreviousMonth = { displayedMonth = displayedMonth.minusMonths(1) },
+                                    onNextMonth = { displayedMonth = displayedMonth.plusMonths(1) },
+                                    onSelectDate = { date ->
+                                        selectedDate = date
+                                        displayedMonth = YearMonth.from(date)
+                                        scope.launch { pagerState.animateScrollToPage(0) }
+                                    }
+                                )
 
-                                2 -> UserStatsScreen(
+                                2 -> RecommendationScreen(
+                                    selectedDateLabel = selectedDate.toString(),
+                                    currentEntry = dayEntries[selectedDate],
+                                    onSaveMealAsEaten = { meal ->
+                                        val current = dayEntries[selectedDate] ?: DayEntry()
+                                        val updatedCaloriesEaten = (current.caloriesEaten.toIntOrNull() ?: 0) + meal.calories
+                                        val updatedProteinEaten = (current.proteinEaten.toIntOrNull() ?: 0) + meal.protein
+
+                                        dayEntries[selectedDate] = current.copy(
+                                            caloriesEaten = updatedCaloriesEaten.toString(),
+                                            proteinEaten = updatedProteinEaten.toString(),
+                                            remainingCalories = current.calorieTarget?.minus(updatedCaloriesEaten),
+                                            remainingProtein = current.proteinTarget?.minus(updatedProteinEaten)
+                                        )
+                                    }
+                                )
+
+                                3 -> UserStatsScreen(
                                     today = today,
                                     entries = dayEntries
                                 )
@@ -148,32 +141,26 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+//Edited this to do button wrap-around instead of displaying text vertically. -Eric
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TopNavigationBar(
     currentPage: Int,
     onNavigate: (Int) -> Unit
 ) {
-    Row(
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        maxItemsInEachRow = 2
     ) {
-        NavButton(
-            text = "Daily",
-            selected = currentPage == 0,
-            onClick = { onNavigate(0) }
-        )
-        NavButton(
-            text = "Calendar",
-            selected = currentPage == 1,
-            onClick = { onNavigate(1) }
-        )
-        NavButton(
-            text = "User",
-            selected = currentPage == 2,
-            onClick = { onNavigate(2) }
-        )
+        NavButton("Daily", currentPage == 0) { onNavigate(0) }
+        NavButton("Calendar", currentPage == 1) { onNavigate(1) }
+        NavButton("Recommend", currentPage == 2) { onNavigate(2) }
+        NavButton("User", currentPage == 3) { onNavigate(3) }
     }
 }
 
@@ -199,9 +186,7 @@ fun NavButton(
 fun DailyCalculationScreen(
     selectedDate: LocalDate,
     savedEntry: DayEntry?,
-    onSaveEntry: (DayEntry) -> Unit,
-    onGoToCalendar: () -> Unit,
-    onGoToUser: () -> Unit
+    onSaveEntry: (DayEntry) -> Unit
 ) {
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
@@ -232,11 +217,7 @@ fun DailyCalculationScreen(
         sex = sex
     )
 
-    val proteinTarget = calculateProtein(
-        weight = weight.toIntOrNull(),
-        goal = goal
-    )
-
+    val proteinTarget = calculateProtein(weight = weight.toIntOrNull(), goal = goal)
     val remainingCalories = calorieTarget?.minus(caloriesEaten.toIntOrNull() ?: 0)
     val remainingProtein = proteinTarget?.minus(proteinEaten.toIntOrNull() ?: 0)
 
@@ -247,24 +228,8 @@ fun DailyCalculationScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "FitFuel",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            text = "Selected Day: $selectedDate",
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = onGoToCalendar) {
-            Text("Open Calendar")
-            }
-            OutlinedButton(onClick = onGoToUser) {
-                Text("User Stats")
-            }
-        }
+        Text(text = "FitFuel", style = MaterialTheme.typography.headlineMedium)
+        Text(text = "Selected Day: $selectedDate", style = MaterialTheme.typography.titleMedium)
 
         NumberField("Weight (kg)", weight) { weight = it }
         NumberField("Height (cm)", height) { height = it }
@@ -278,47 +243,23 @@ fun DailyCalculationScreen(
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Daily Calorie Target",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = calorieTarget?.toString() ?: "Enter all values",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                Text(text = "Daily Calorie Target", style = MaterialTheme.typography.titleMedium)
+                Text(text = calorieTarget?.toString() ?: "Enter all values", style = MaterialTheme.typography.headlineSmall)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = "Remaining Calories",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = remainingCalories?.toString() ?: "Enter calories eaten",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                Text(text = "Remaining Calories", style = MaterialTheme.typography.titleMedium)
+                Text(text = remainingCalories?.toString() ?: "Enter calories eaten", style = MaterialTheme.typography.headlineSmall)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = "Daily Protein Target (g)",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = proteinTarget?.toString() ?: "Enter weight",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                Text(text = "Daily Protein Target (g)", style = MaterialTheme.typography.titleMedium)
+                Text(text = proteinTarget?.toString() ?: "Enter weight", style = MaterialTheme.typography.headlineSmall)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = "Remaining Protein (g)",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = remainingProtein?.toString() ?: "Enter protein eaten",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                Text(text = "Remaining Protein (g)", style = MaterialTheme.typography.titleMedium)
+                Text(text = remainingProtein?.toString() ?: "Enter protein eaten", style = MaterialTheme.typography.headlineSmall)
             }
         }
 
@@ -348,7 +289,7 @@ fun DailyCalculationScreen(
     }
 }
 
-//Extremely basic calendar screen implementation. Will use this to store user information in the future. Line 325 is NOT FUNCTIONAL at the given moment. -Eric
+//Extremely basic calendar screen implementation. Stores today's date, user selected day, and days where info is recorded. -Eric
 
 @Composable
 fun CalendarScreen(
@@ -367,10 +308,7 @@ fun CalendarScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Calendar",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Text(text = "Calendar", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -379,24 +317,16 @@ fun CalendarScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onPreviousMonth) {
-                Text("< Prev")
-            }
-
+            TextButton(onClick = onPreviousMonth) { Text("< Prev") }
             Text(
                 text = "${displayedMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${displayedMonth.year}",
                 style = MaterialTheme.typography.titleLarge
             )
-
-            TextButton(onClick = onNextMonth) {
-                Text("Next >")
-            }
+            TextButton(onClick = onNextMonth) { Text("Next >") }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
         WeekHeader()
-
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyVerticalGrid(
@@ -419,17 +349,10 @@ fun CalendarScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Tap a day to edit that day's saved calorie and protein data.",
-            style = MaterialTheme.typography.bodyMedium
-        )
     }
 }
 
-//handles the User screen
+//handles the User screen -Zihao
 
 @Composable
 fun UserStatsScreen(
@@ -437,19 +360,13 @@ fun UserStatsScreen(
     entries: Map<LocalDate, DayEntry>
 ) {
     val savedDays = entries.keys.sorted()
-
     val firstDate = savedDays.firstOrNull()
-    val daysElapsed = if (firstDate != null) {
-        ChronoUnit.DAYS.between(firstDate, today).toInt()
-    } else {
-        0
-    }
+    val daysElapsed = if (firstDate != null) ChronoUnit.DAYS.between(firstDate, today).toInt() else 0
 
     val totalCaloriesBurned = entries.values.sumOf { it.caloriesBurned.toIntOrNull() ?: 0 }
     val totalCaloriesEaten = entries.values.sumOf { it.caloriesEaten.toIntOrNull() ?: 0 }
     val totalProteinTarget = entries.values.sumOf { it.proteinTarget ?: 0 }
     val totalProteinEaten = entries.values.sumOf { it.proteinEaten.toIntOrNull() ?: 0 }
-    val totalRemainingProtein = entries.values.sumOf { it.remainingProtein ?: 0 }
 
     Column(
         modifier = Modifier
@@ -457,10 +374,7 @@ fun UserStatsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "User Stats",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Text(text = "User Stats", style = MaterialTheme.typography.headlineMedium)
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -476,7 +390,6 @@ fun UserStatsScreen(
                 Text("Cumulative Calories Eaten: $totalCaloriesEaten", style = MaterialTheme.typography.titleMedium)
                 Text("Cumulative Protein Target (g): $totalProteinTarget", style = MaterialTheme.typography.titleMedium)
                 Text("Cumulative Protein Eaten (g): $totalProteinEaten", style = MaterialTheme.typography.titleMedium)
-                Text("Cumulative Remaining Protein (g): $totalRemainingProtein", style = MaterialTheme.typography.titleMedium)
             }
         }
 
@@ -494,7 +407,6 @@ fun UserStatsScreen(
         }
     }
 }
-
 
 @Composable
 fun WeekHeader() {
@@ -552,11 +464,7 @@ fun CalendarDayCell(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = date.dayOfMonth.toString(),
-                color = textColor,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Text(text = date.dayOfMonth.toString(), color = textColor, style = MaterialTheme.typography.bodyLarge)
 
             if (hasSavedEntry) {
                 Box(
@@ -573,7 +481,7 @@ fun CalendarDayCell(
     }
 }
 
-//text fields for numerical inputs later (age, weight, etc) -Eric
+//text fields for numerical inputs (age, weight, etc) -Eric
 
 @Composable
 fun NumberField(
@@ -583,10 +491,7 @@ fun NumberField(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = { input ->
-            val filtered = input.filter { it.isDigit() }
-            onChange(filtered)
-        },
+        onValueChange = { input -> onChange(input.filter { it.isDigit() }) },
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true
@@ -603,20 +508,12 @@ fun SexSelector(
     val options = listOf("Male", "Female")
 
     Column {
-        Text(
-            text = "Sex",
-            style = MaterialTheme.typography.titleMedium
-        )
-
+        Text(text = "Sex", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { option ->
                 Button(
                     onClick = { onSelect(option) },
-                    colors = if (option == selected) {
-                        ButtonDefaults.buttonColors()
-                    } else {
-                        ButtonDefaults.outlinedButtonColors()
-                    }
+                    colors = if (option == selected) ButtonDefaults.buttonColors() else ButtonDefaults.outlinedButtonColors()
                 ) {
                     Text(option)
                 }
@@ -635,20 +532,12 @@ fun GoalSelector(
     val goals = listOf("Lose Weight", "Maintain", "Gain Muscle")
 
     Column {
-        Text(
-            text = "Goal",
-            style = MaterialTheme.typography.titleMedium
-        )
-
+        Text(text = "Goal", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             goals.forEach { goal ->
                 Button(
                     onClick = { onSelect(goal) },
-                    colors = if (goal == selected) {
-                        ButtonDefaults.buttonColors()
-                    } else {
-                        ButtonDefaults.outlinedButtonColors()
-                    }
+                    colors = if (goal == selected) ButtonDefaults.buttonColors() else ButtonDefaults.outlinedButtonColors()
                 ) {
                     Text(goal)
                 }
@@ -657,7 +546,7 @@ fun GoalSelector(
     }
 }
 
-//added field for "if female" case and calculation -Eric
+//Basic caloric and protein goal calculation with sex selector. Using Mifflin-St Jeor equation. -Eric
 
 fun calculateCalories(
     weight: Int?,
@@ -683,7 +572,7 @@ fun calculateCalories(
     return bmr + (burned ?: 0) + adjustment
 }
 
-//handles protein calculation. add this in gradually similarly to the user screen
+//handles protein calculation. -Zihao 
 fun calculateProtein(
     weight: Int?,
     goal: String
@@ -691,15 +580,15 @@ fun calculateProtein(
     if (weight == null) return null
 
     val multiplier = when (goal) {
-        "Lose Weight" -> 2.0
-        "Gain Muscle" -> 2.2
+        "Lose Weight" -> 2.2
+        "Gain Muscle" -> 2.0
         else -> 1.6
     }
 
     return (weight * multiplier).toInt()
 }
 
-//handles the calendar cells on the calendar screen.
+//handles the calendar cells on the calendar screen. -Zihao
 
 fun buildCalendarCells(month: YearMonth): List<LocalDate?> {
     val firstDay = month.atDay(1)
@@ -707,15 +596,9 @@ fun buildCalendarCells(month: YearMonth): List<LocalDate?> {
     val startOffset = firstDay.dayOfWeek.value % 7
 
     val cells = mutableListOf<LocalDate?>()
-
-    repeat(startOffset) {
-        cells.add(null)
-    }
-
+    repeat(startOffset) { cells.add(null) }
     for (day in 1..daysInMonth) {
         cells.add(month.atDay(day))
     }
-
     return cells
 }
-
