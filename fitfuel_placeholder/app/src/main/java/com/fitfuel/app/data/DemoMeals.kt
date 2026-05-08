@@ -136,6 +136,105 @@ object DemoMeals {
         description = "A delicious Italian classic perfect for a weekend cheat meal or refeed."
     )
 
+    val spicyTunaRoll = Meal(
+        id = "spicy_tuna_roll",
+        name = "Spicy Tuna Roll",
+        calories = 320,
+        protein = 14,
+        tags = listOf("sushi", "fish", "lighter-option"),
+        emoji = "🍣",
+        description = "A light and flavorful roll perfect for a quick bite."
+    )
+
+    val chickenTikkaMasala = Meal(
+        id = "chicken_tikka_masala",
+        name = "Chicken Tikka Masala",
+        calories = 550,
+        protein = 38,
+        tags = listOf("curry", "chicken", "comfort"),
+        emoji = "🍛",
+        description = "A rich and warming curry packed with protein."
+    )
+
+    val berryOatmeal = Meal(
+        id = "berry_oatmeal",
+        name = "Berry Oatmeal",
+        calories = 250,
+        protein = 7,
+        tags = listOf("breakfast", "vegan", "high-fiber"),
+        emoji = "🥣",
+        description = "A warm, heart-healthy start to your morning."
+    )
+
+    val steakTacos = Meal(
+        id = "steak_tacos",
+        name = "Street Steak Tacos",
+        calories = 450,
+        protein = 28,
+        tags = listOf("beef", "mexican", "quick"),
+        emoji = "🌮",
+        description = "Savory grilled steak on corn tortillas with fresh cilantro and onion."
+    )
+
+    val quinoaSalad = Meal(
+        id = "quinoa_salad",
+        name = "Mediterranean Quinoa Salad",
+        calories = 310,
+        protein = 10,
+        tags = listOf("vegetarian", "salad", "light"),
+        emoji = "🥗",
+        description = "A refreshing, grain-based salad with feta and olives."
+    )
+
+    val porkRamen = Meal(
+        id = "pork_ramen",
+        name = "Tonkotsu Pork Ramen",
+        calories = 600,
+        protein = 25,
+        tags = listOf("soup", "noodles", "comfort"),
+        emoji = "🍜",
+        description = "A deeply flavorful, rich broth topped with tender pork belly."
+    )
+
+    val turkeySandwich = Meal(
+        id = "turkey_sandwich",
+        name = "Roast Turkey Sandwich",
+        calories = 400,
+        protein = 30,
+        tags = listOf("lunch", "sandwich", "high-protein"),
+        emoji = "🥪",
+        description = "A classic deli favorite loaded with lean meat."
+    )
+
+    val eggplantParmesan = Meal(
+        id = "eggplant_parmesan",
+        name = "Eggplant Parmesan",
+        calories = 480,
+        protein = 18,
+        tags = listOf("vegetarian", "italian", "comfort"),
+        emoji = "🍆",
+        description = "Breaded and baked eggplant layered with marinara and melted cheese."
+    )
+
+    val smoothieBowl = Meal(
+        id = "smoothie_bowl",
+        name = "Acai Smoothie Bowl",
+        calories = 290,
+        protein = 6,
+        tags = listOf("breakfast", "fruit", "sweet"),
+        emoji = "🥥",
+        description = "A vibrant, refreshing bowl topped with fresh fruit and seeds."
+    )
+
+    val shrimpSkewers = Meal(
+        id = "shrimp_skewers",
+        name = "Grilled Shrimp Skewers",
+        calories = 200,
+        protein = 24,
+        tags = listOf("seafood", "lower-calorie", "high-protein"),
+        emoji = "🍤",
+        description = "Incredibly lean and protein-dense, perfect for cutting phases."
+    )
     val all = listOf(
         caesarSalad,
         carbonara,
@@ -149,6 +248,16 @@ object DemoMeals {
         veggieBurger,
         proteinPancakes,
         tunaSalad,
-        margheritaPizza
+        margheritaPizza,
+        spicyTunaRoll,
+        chickenTikkaMasala,
+        berryOatmeal,
+        steakTacos,
+        quinoaSalad,
+        porkRamen,
+        turkeySandwich,
+        eggplantParmesan,
+        smoothieBowl,
+        shrimpSkewers
     )
 }
