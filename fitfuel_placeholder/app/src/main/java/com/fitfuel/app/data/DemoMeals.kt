@@ -36,6 +36,119 @@ object DemoMeals {
         emoji = "🥩",
         description = "A protein-forward option that fits muscle-focused days well."
     )
+    val grilledChickenWrap = Meal(
+        id = "grilled_chicken_wrap",
+        name = "Grilled Chicken Wrap",
+        calories = 450,
+        protein = 32,
+        tags = listOf("chicken", "lunch", "balanced"),
+        emoji = "🌯",
+        description = "A well-rounded midday meal with lean protein and whole grains."
+    )
 
-    val all = listOf(caesarSalad, carbonara, filetMignon)
+    val avocadoToast = Meal(
+        id = "avocado_toast",
+        name = "Avocado Toast",
+        calories = 300,
+        protein = 8,
+        tags = listOf("breakfast", "vegetarian", "healthy-fats"),
+        emoji = "🥑",
+        description = "A trendy, quick breakfast packed with healthy fats and fiber."
+    )
+
+    val salmonBowl = Meal(
+        id = "salmon_bowl",
+        name = "Teriyaki Salmon Bowl",
+        calories = 620,
+        protein = 35,
+        tags = listOf("fish", "rice", "omega-3"),
+        emoji = "🐟",
+        description = "A nutrient-dense bowl featuring fatty fish and steamed veggies."
+    )
+
+    val lentilSoup = Meal(
+        id = "lentil_soup",
+        name = "Hearty Lentil Soup",
+        calories = 280,
+        protein = 16,
+        tags = listOf("vegan", "soup", "high-fiber"),
+        emoji = "🥣",
+        description = "A comforting, plant-based bowl loaded with complex carbs and fiber."
+    )
+
+    val beefStirFry = Meal(
+        id = "beef_stir_fry",
+        name = "Beef & Broccoli Stir Fry",
+        calories = 480,
+        protein = 30,
+        tags = listOf("beef", "vegetables", "quick"),
+        emoji = "🍳",
+        description = "A fast, savory weeknight staple with crisp veggies and tender steak."
+    )
+
+    val yogurtParfait = Meal(
+        id = "yogurt_parfait",
+        name = "Greek Yogurt Parfait",
+        calories = 220,
+        protein = 20,
+        tags = listOf("snack", "breakfast", "sweet"),
+        emoji = "🍨",
+        description = "A sweet, protein-rich snack layered with berries and granola."
+    )
+
+    val veggieBurger = Meal(
+        id = "veggie_burger",
+        name = "Black Bean Veggie Burger",
+        calories = 410,
+        protein = 15,
+        tags = listOf("vegetarian", "burger", "plant-based"),
+        emoji = "🍔",
+        description = "A satisfying meat-free alternative that goes great with sweet potato fries."
+    )
+
+    val proteinPancakes = Meal(
+        id = "protein_pancakes",
+        name = "Protein Pancakes",
+        calories = 380,
+        protein = 28,
+        tags = listOf("breakfast", "high-protein", "sweet"),
+        emoji = "🥞",
+        description = "A macro-friendly take on a breakfast classic to start the day strong."
+    )
+
+    val tunaSalad = Meal(
+        id = "tuna_salad",
+        name = "Classic Tuna Salad",
+        calories = 340,
+        protein = 26,
+        tags = listOf("fish", "lower-carb", "quick"),
+        emoji = "🥫",
+        description = "A simple, low-carb staple that takes minutes to prepare."
+    )
+
+    val margheritaPizza = Meal(
+        id = "margherita_pizza",
+        name = "Margherita Pizza",
+        calories = 750,
+        protein = 24,
+        tags = listOf("pizza", "comfort", "higher-calorie"),
+        emoji = "🍕",
+        description = "A delicious Italian classic perfect for a weekend cheat meal or refeed."
+    )
+
+    val all = listOf(
+        caesarSalad,
+        carbonara,
+        filetMignon,
+        grilledChickenWrap,
+        avocadoToast,
+        salmonBowl,
+        lentilSoup,
+        beefStirFry,
+        yogurtParfait,
+        veggieBurger,
+        proteinPancakes,
+        tunaSalad,
+        margheritaPizza
+    )
 }
