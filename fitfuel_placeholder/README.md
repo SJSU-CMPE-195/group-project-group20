@@ -12,7 +12,7 @@
 - Let Gradle sync
 - If this is your first time using Android Studio, set up an emulator (recommend using Medium Phone API 36)
 - Build automatically, then run
-- I personally recommend Cold Booting via Tools -> Device Manager -> Cold Boot every time just in case, also wipe device memory each time for a fresh test
+- Cold Booting the emulator is safe, but do not wipe emulator data or uninstall the app if you want Room data to persist between runs.
 
 # Immediate future plans (3-20-26, version 1, frame)
 - Start charting out dynamic BMR calculation based on user history. Should take a pretty long while.
@@ -20,3 +20,9 @@
 - Create calendar screen
 - Comment more code for future proof
 
+
+# 195B Weeks 1-2 Persistence
+- Room stores each saved `DayEntry` in the on-device SQLite database.
+- `FitFuelViewModel` exposes Room-backed state to every Compose screen.
+- `DayEntryRepository` separates UI state from database implementation details.
+- Saving a recommended meal updates the selected day through the repository.
