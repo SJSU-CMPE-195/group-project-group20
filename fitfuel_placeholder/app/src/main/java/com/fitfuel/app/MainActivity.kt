@@ -3,6 +3,7 @@ package com.fitfuel.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,7 +38,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,8 +49,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fitfuel.app.model.DayEntry
-import com.fitfuel.app.model.Meal
 import com.fitfuel.app.ui.RecommendationScreen
+import com.fitfuel.app.ui.state.FitFuelViewModel
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -58,23 +58,26 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.FlowRow
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
+    private val fitFuelViewModel: FitFuelViewModel by viewModels {
+        FitFuelViewModel.Factory(
+            (application as FitFuelApplication).dayEntryRepository
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
+                    val uiState by fitFuelViewModel.uiState.collectAsStateWithLifecycle()
                     val today = remember { LocalDate.now() }
-                    var selectedDate by remember { mutableStateOf(today) }
-                    var displayedMonth by remember { mutableStateOf(YearMonth.now()) }
-                    val dayEntries = remember { mutableStateMapOf<LocalDate, DayEntry>() }
-
                     val pagerState = rememberPagerState(pageCount = { 4 })
                     val scope = rememberCoroutineScope()
 
@@ -92,45 +95,33 @@ class MainActivity : ComponentActivity() {
                         ) { page ->
                             when (page) {
                                 0 -> DailyCalculationScreen(
-                                    selectedDate = selectedDate,
-                                    savedEntry = dayEntries[selectedDate],
-                                    onSaveEntry = { entry -> dayEntries[selectedDate] = entry }
+                                    selectedDate = uiState.selectedDate,
+                                    savedEntry = uiState.dayEntries[uiState.selectedDate],
+                                    onSaveEntry = fitFuelViewModel::saveDay
                                 )
 
                                 1 -> CalendarScreen(
                                     today = today,
-                                    selectedDate = selectedDate,
-                                    displayedMonth = displayedMonth,
-                                    entries = dayEntries,
-                                    onPreviousMonth = { displayedMonth = displayedMonth.minusMonths(1) },
-                                    onNextMonth = { displayedMonth = displayedMonth.plusMonths(1) },
+                                    selectedDate = uiState.selectedDate,
+                                    displayedMonth = uiState.displayedMonth,
+                                    entries = uiState.dayEntries,
+                                    onPreviousMonth = fitFuelViewModel::showPreviousMonth,
+                                    onNextMonth = fitFuelViewModel::showNextMonth,
                                     onSelectDate = { date ->
-                                        selectedDate = date
-                                        displayedMonth = YearMonth.from(date)
+                                        fitFuelViewModel.selectDate(date)
                                         scope.launch { pagerState.animateScrollToPage(0) }
                                     }
                                 )
 
                                 2 -> RecommendationScreen(
-                                    selectedDateLabel = selectedDate.toString(),
-                                    currentEntry = dayEntries[selectedDate],
-                                    onSaveMealAsEaten = { meal ->
-                                        val current = dayEntries[selectedDate] ?: DayEntry()
-                                        val updatedCaloriesEaten = (current.caloriesEaten.toIntOrNull() ?: 0) + meal.calories
-                                        val updatedProteinEaten = (current.proteinEaten.toIntOrNull() ?: 0) + meal.protein
-
-                                        dayEntries[selectedDate] = current.copy(
-                                            caloriesEaten = updatedCaloriesEaten.toString(),
-                                            proteinEaten = updatedProteinEaten.toString(),
-                                            remainingCalories = current.calorieTarget?.minus(updatedCaloriesEaten),
-                                            remainingProtein = current.proteinTarget?.minus(updatedProteinEaten)
-                                        )
-                                    }
+                                    selectedDateLabel = uiState.selectedDate.toString(),
+                                    currentEntry = uiState.dayEntries[uiState.selectedDate],
+                                    onSaveMealAsEaten = fitFuelViewModel::saveMealAsEaten
                                 )
 
                                 3 -> UserStatsScreen(
                                     today = today,
-                                    entries = dayEntries
+                                    entries = uiState.dayEntries
                                 )
                             }
                         }
