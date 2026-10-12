@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 195B Weeks 3-4: Required for calls to the local FastAPI and OpenAI-backed recommendation service. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 195B Weeks 3-4: Cleartext HTTP is enabled only for local emulator development; production should use HTTPS. -->
     <application
+        android:name=".FitFuelApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="FitFuel"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FitFuel">
+        android:theme="@style/Theme.FitFuel"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true">

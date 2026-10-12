@@ -12,7 +12,7 @@
 | Name 3 | [@erttransjsu](https://github.com/erttransjsu) | eric.tran05@sjsu.edu |
 | Zihao He | [@zihaohe2022](https://github.com/zihaohe2022) | zihao.he01@sjsu.edu |
 
-**Advisor:** Jun Liu
+**Advisor:** Mark Ammar Rayes
 
 ---
 

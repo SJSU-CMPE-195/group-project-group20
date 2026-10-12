@@ -3,6 +3,7 @@ package com.fitfuel.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,7 +38,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,11 +46,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.fitfuel.app.domain.NutritionCalculator
 import com.fitfuel.app.model.DayEntry
-import com.fitfuel.app.model.Meal
+import com.fitfuel.app.model.TagPreference
 import com.fitfuel.app.ui.RecommendationScreen
+import com.fitfuel.app.ui.state.FitFuelViewModel
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -58,23 +61,32 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.FlowRow
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
+    // 195B Weeks 1-2: Activity state is now provided by a lifecycle-aware ViewModel.
+    private val fitFuelViewModel: FitFuelViewModel by viewModels {
+        FitFuelViewModel.Factory(
+            (application as FitFuelApplication).dayEntryRepository,
+            // 195B Weeks 3-4: ViewModel receives the FastAPI/OpenAI recommendation repository.
+            (application as FitFuelApplication).recommendationRepository,
+            // 195B Weeks 5-6: ViewModel receives persistent tag-preference storage for personalization.
+            (application as FitFuelApplication).tagPreferenceRepository
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
+                    // 195B Weeks 1-2: Room-backed state is collected safely with the Activity lifecycle.
+                    val uiState by fitFuelViewModel.uiState.collectAsStateWithLifecycle()
                     val today = remember { LocalDate.now() }
-                    var selectedDate by remember { mutableStateOf(today) }
-                    var displayedMonth by remember { mutableStateOf(YearMonth.now()) }
-                    val dayEntries = remember { mutableStateMapOf<LocalDate, DayEntry>() }
-
                     val pagerState = rememberPagerState(pageCount = { 4 })
                     val scope = rememberCoroutineScope()
 
@@ -92,45 +104,52 @@ class MainActivity : ComponentActivity() {
                         ) { page ->
                             when (page) {
                                 0 -> DailyCalculationScreen(
-                                    selectedDate = selectedDate,
-                                    savedEntry = dayEntries[selectedDate],
-                                    onSaveEntry = { entry -> dayEntries[selectedDate] = entry }
+                                    selectedDate = uiState.selectedDate,
+                                    savedEntry = uiState.dayEntries[uiState.selectedDate],
+                                    onSaveEntry = fitFuelViewModel::saveDay
                                 )
 
                                 1 -> CalendarScreen(
                                     today = today,
-                                    selectedDate = selectedDate,
-                                    displayedMonth = displayedMonth,
-                                    entries = dayEntries,
-                                    onPreviousMonth = { displayedMonth = displayedMonth.minusMonths(1) },
-                                    onNextMonth = { displayedMonth = displayedMonth.plusMonths(1) },
+                                    selectedDate = uiState.selectedDate,
+                                    displayedMonth = uiState.displayedMonth,
+                                    entries = uiState.dayEntries,
+                                    onPreviousMonth = fitFuelViewModel::showPreviousMonth,
+                                    onNextMonth = fitFuelViewModel::showNextMonth,
                                     onSelectDate = { date ->
-                                        selectedDate = date
-                                        displayedMonth = YearMonth.from(date)
+                                        fitFuelViewModel.selectDate(date)
                                         scope.launch { pagerState.animateScrollToPage(0) }
                                     }
                                 )
 
                                 2 -> RecommendationScreen(
-                                    selectedDateLabel = selectedDate.toString(),
-                                    currentEntry = dayEntries[selectedDate],
-                                    onSaveMealAsEaten = { meal ->
-                                        val current = dayEntries[selectedDate] ?: DayEntry()
-                                        val updatedCaloriesEaten = (current.caloriesEaten.toIntOrNull() ?: 0) + meal.calories
-                                        val updatedProteinEaten = (current.proteinEaten.toIntOrNull() ?: 0) + meal.protein
-
-                                        dayEntries[selectedDate] = current.copy(
-                                            caloriesEaten = updatedCaloriesEaten.toString(),
-                                            proteinEaten = updatedProteinEaten.toString(),
-                                            remainingCalories = current.calorieTarget?.minus(updatedCaloriesEaten),
-                                            remainingProtein = current.proteinTarget?.minus(updatedProteinEaten)
+                                    selectedDateLabel = uiState.selectedDate.toString(),
+                                    currentEntry = uiState.dayEntries[uiState.selectedDate],
+                                    // 195B Weeks 3-4: GPT recommendation state and refresh action are owned by the ViewModel.
+                                    recommendationState = uiState.recommendationState,
+                                    // 195B Weeks 5-6: Recommendation UI receives learned tags and explicit feedback actions.
+                                    tagPreferences = uiState.tagPreferences,
+                                    onRequestRecommendations = {
+                                        fitFuelViewModel.loadRecommendations(
+                                            uiState.dayEntries[uiState.selectedDate]
                                         )
-                                    }
+                                    },
+                                    // 195B Weeks 7-8 (v0.5.0): Manual refresh bypasses the recommendation cache while automatic recompositions reuse unchanged results.
+                                    onRefreshRecommendations = {
+                                        fitFuelViewModel.loadRecommendations(
+                                            uiState.dayEntries[uiState.selectedDate],
+                                            forceRefresh = true
+                                        )
+                                    },
+                                    onSaveMealAsEaten = fitFuelViewModel::saveMealAsEaten,
+                                    onDismissRecommendation = fitFuelViewModel::dismissMealRecommendation
                                 )
 
                                 3 -> UserStatsScreen(
                                     today = today,
-                                    entries = dayEntries
+                                    entries = uiState.dayEntries,
+                                    // 195B Weeks 5-6: User page now displays learned preference tags from Room.
+                                    tagPreferences = uiState.tagPreferences
                                 )
                             }
                         }
@@ -172,6 +191,8 @@ fun NavButton(
 ) {
     Button(
         onClick = onClick,
+        // 195B Weeks 7-8 (v0.5.0): Stable semantics tags make navigation deterministic in Compose end-to-end tests.
+        modifier = Modifier.testTag("nav_${text.lowercase()}") ,
         colors = if (selected) {
             ButtonDefaults.buttonColors()
         } else {
@@ -231,12 +252,13 @@ fun DailyCalculationScreen(
         Text(text = "FitFuel", style = MaterialTheme.typography.headlineMedium)
         Text(text = "Selected Day: $selectedDate", style = MaterialTheme.typography.titleMedium)
 
-        NumberField("Weight (kg)", weight) { weight = it }
-        NumberField("Height (cm)", height) { height = it }
-        NumberField("Age", age) { age = it }
-        NumberField("Calories Burned Today", caloriesBurned) { caloriesBurned = it }
-        NumberField("Calories Eaten Today", caloriesEaten) { caloriesEaten = it }
-        NumberField("Protein Eaten Today (g)", proteinEaten) { proteinEaten = it }
+        // 195B Weeks 7-8 (v0.5.0): Input semantics tags support repeatable UI automation without depending on visible label parsing.
+        NumberField("Weight (kg)", weight, "input_weight") { weight = it }
+        NumberField("Height (cm)", height, "input_height") { height = it }
+        NumberField("Age", age, "input_age") { age = it }
+        NumberField("Calories Burned Today", caloriesBurned, "input_calories_burned") { caloriesBurned = it }
+        NumberField("Calories Eaten Today", caloriesEaten, "input_calories_eaten") { caloriesEaten = it }
+        NumberField("Protein Eaten Today (g)", proteinEaten, "input_protein_eaten") { proteinEaten = it }
 
         SexSelector(selected = sex, onSelect = { sex = it })
         GoalSelector(selected = goal, onSelect = { goal = it })
@@ -282,7 +304,10 @@ fun DailyCalculationScreen(
                     )
                 )
             },
-            modifier = Modifier.fillMaxWidth()
+            // 195B Weeks 7-8 (v0.5.0): Save action has a stable test hook for the persistence end-to-end scenario.
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("save_day")
         ) {
             Text("Save Day")
         }
@@ -301,7 +326,8 @@ fun CalendarScreen(
     onNextMonth: () -> Unit,
     onSelectDate: (LocalDate) -> Unit
 ) {
-    val days = buildCalendarCells(displayedMonth)
+    // 195B Weeks 7-8 (v0.5.0): Calendar cells are reused until the displayed month changes, reducing repeated date allocation during recomposition.
+    val days = remember(displayedMonth) { buildCalendarCells(displayedMonth) }
 
     Column(
         modifier = Modifier
@@ -357,20 +383,39 @@ fun CalendarScreen(
 @Composable
 fun UserStatsScreen(
     today: LocalDate,
-    entries: Map<LocalDate, DayEntry>
+    entries: Map<LocalDate, DayEntry>,
+    // 195B Weeks 5-6: User statistics include the preference profile learned from recommendation feedback.
+    tagPreferences: Map<String, TagPreference>
 ) {
-    val savedDays = entries.keys.sorted()
-    val firstDate = savedDays.firstOrNull()
-    val daysElapsed = if (firstDate != null) ChronoUnit.DAYS.between(firstDate, today).toInt() else 0
-
-    val totalCaloriesBurned = entries.values.sumOf { it.caloriesBurned.toIntOrNull() ?: 0 }
-    val totalCaloriesEaten = entries.values.sumOf { it.caloriesEaten.toIntOrNull() ?: 0 }
-    val totalProteinTarget = entries.values.sumOf { it.proteinTarget ?: 0 }
-    val totalProteinEaten = entries.values.sumOf { it.proteinEaten.toIntOrNull() ?: 0 }
+    // 195B Weeks 7-8 (v0.5.0): Aggregate statistics are memoized so unrelated UI state changes do not repeatedly rescan every saved day.
+    val savedDays = remember(entries) { entries.keys.sorted() }
+    val firstDate = remember(savedDays) { savedDays.firstOrNull() }
+    val daysElapsed = remember(firstDate, today) {
+        if (firstDate != null) ChronoUnit.DAYS.between(firstDate, today).toInt() else 0
+    }
+    val totalCaloriesBurned = remember(entries) { entries.values.sumOf { it.caloriesBurned.toIntOrNull() ?: 0 } }
+    val totalCaloriesEaten = remember(entries) { entries.values.sumOf { it.caloriesEaten.toIntOrNull() ?: 0 } }
+    val totalProteinTarget = remember(entries) { entries.values.sumOf { it.proteinTarget ?: 0 } }
+    val totalProteinEaten = remember(entries) { entries.values.sumOf { it.proteinEaten.toIntOrNull() ?: 0 } }
+    // 195B Weeks 5-6: Only positive affinity tags are shown as preferred attributes; negative signals still affect ranking.
+    val preferredTags = remember(tagPreferences) {
+        tagPreferences.values
+            .filter { it.affinityScore > 0 }
+            .sortedWith(
+                compareByDescending<TagPreference> { it.affinityScore }
+                    .thenByDescending { it.positiveSignals }
+                    .thenBy { it.tag }
+            )
+            .take(8)
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            // 195B Weeks 7-8 (v0.5.0): Screen-level semantics tag supports end-to-end navigation assertions.
+            .testTag("user_stats_screen")
+            // 195B Weeks 5-6: Preference rows can extend the User page, so the screen now scrolls on smaller devices.
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -396,13 +441,18 @@ fun UserStatsScreen(
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Preferred Meal Tags", style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    label = { Text("No preferred tags yet") }
-                )
+                if (preferredTags.isEmpty()) {
+                    // 195B Weeks 5-6: Empty state explains how the preference profile begins learning.
+                    Text("No preferred tags learned yet. Save recommended meals to build preferences.")
+                } else {
+                    // 195B Weeks 5-6: Scores and signal counts make the proof-of-concept learning behavior observable.
+                    preferredTags.forEach { preference ->
+                        Text(
+                            text = "#${preference.tag}  •  score ${preference.affinityScore}  •  ${preference.positiveSignals} positive signal(s)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
         }
     }
@@ -487,13 +537,17 @@ fun CalendarDayCell(
 fun NumberField(
     label: String,
     value: String,
+    // 195B Weeks 7-8 (v0.5.0): Each numeric field exposes a stable ID for Compose UI tests.
+    testTag: String,
     onChange: (String) -> Unit
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = { input -> onChange(input.filter { it.isDigit() }) },
         label = { Text(label) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(testTag),
         singleLine = true
     )
 }
@@ -548,6 +602,7 @@ fun GoalSelector(
 
 //Basic caloric and protein goal calculation with sex selector. Using Mifflin-St Jeor equation. -Eric
 
+// 195B Weeks 7-8 (v0.5.0): Existing call sites delegate to a pure domain calculator that is covered by JVM unit tests.
 fun calculateCalories(
     weight: Int?,
     height: Int?,
@@ -555,38 +610,12 @@ fun calculateCalories(
     burned: Int?,
     goal: String,
     sex: String
-): Int? {
-    if (weight == null || height == null || age == null) return null
+): Int? = NutritionCalculator.calculateCalories(weight, height, age, burned, goal, sex)
 
-    val bmr = when (sex) {
-        "Female" -> ((10 * weight) + (6.25 * height) - (5 * age) - 161).toInt()
-        else -> ((10 * weight) + (6.25 * height) - (5 * age) + 5).toInt()
-    }
-
-    val adjustment = when (goal) {
-        "Lose Weight" -> -400
-        "Gain Muscle" -> 300
-        else -> 0
-    }
-
-    return bmr + (burned ?: 0) + adjustment
-}
-
-//handles protein calculation. -Zihao 
 fun calculateProtein(
     weight: Int?,
     goal: String
-): Int? {
-    if (weight == null) return null
-
-    val multiplier = when (goal) {
-        "Lose Weight" -> 2.2
-        "Gain Muscle" -> 2.0
-        else -> 1.6
-    }
-
-    return (weight * multiplier).toInt()
-}
+): Int? = NutritionCalculator.calculateProtein(weight, goal)
 
 //handles the calendar cells on the calendar screen. -Zihao
 

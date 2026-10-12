@@ -6,13 +6,14 @@ import com.fitfuel.app.model.Meal
  * Proof-of-concept meals for the recommendation module.
  * These values are intentionally normalized for a stable demo.
  */
+// 195B Weeks 5-6: Demo catalog tags now include cuisine/flavor attributes for preference learning.
 object DemoMeals {
     val caesarSalad = Meal(
         id = "caesar_salad",
         name = "Caesar Salad",
         calories = 350,
         protein = 12,
-        tags = listOf("light", "salad", "lower-calorie"),
+        tags = listOf("italian", "salad", "savory", "light", "lower-calorie"),
         emoji = "🥗",
         description = "A lighter option that fits tighter calorie budgets."
     )
@@ -22,7 +23,7 @@ object DemoMeals {
         name = "Spaghetti Carbonara",
         calories = 500,
         protein = 18,
-        tags = listOf("pasta", "comfort", "higher-calorie"),
+        tags = listOf("italian", "pasta", "savory", "comfort", "higher-calorie"),
         emoji = "🍝",
         description = "A richer pasta option with moderate protein and higher calories."
     )
@@ -32,7 +33,7 @@ object DemoMeals {
         name = "Filet Mignon",
         calories = 550,
         protein = 40,
-        tags = listOf("high-protein", "meat", "premium"),
+        tags = listOf("beef", "steak", "savory", "high-protein", "premium"),
         emoji = "🥩",
         description = "A protein-forward option that fits muscle-focused days well."
     )
@@ -41,7 +42,7 @@ object DemoMeals {
         name = "Grilled Chicken Wrap",
         calories = 450,
         protein = 32,
-        tags = listOf("chicken", "lunch", "balanced"),
+        tags = listOf("chicken", "lunch", "quick", "balanced", "high-protein"),
         emoji = "🌯",
         description = "A well-rounded midday meal with lean protein and whole grains."
     )
@@ -51,7 +52,7 @@ object DemoMeals {
         name = "Avocado Toast",
         calories = 300,
         protein = 8,
-        tags = listOf("breakfast", "vegetarian", "healthy-fats"),
+        tags = listOf("breakfast", "vegetarian", "quick", "healthy-fats"),
         emoji = "🥑",
         description = "A trendy, quick breakfast packed with healthy fats and fiber."
     )
@@ -61,7 +62,7 @@ object DemoMeals {
         name = "Teriyaki Salmon Bowl",
         calories = 620,
         protein = 35,
-        tags = listOf("fish", "rice", "omega-3"),
+        tags = listOf("fish", "rice", "savory", "omega-3"),
         emoji = "🐟",
         description = "A nutrient-dense bowl featuring fatty fish and steamed veggies."
     )
@@ -71,7 +72,7 @@ object DemoMeals {
         name = "Hearty Lentil Soup",
         calories = 280,
         protein = 16,
-        tags = listOf("vegan", "soup", "high-fiber"),
+        tags = listOf("vegan", "plant-based", "soup", "high-fiber"),
         emoji = "🥣",
         description = "A comforting, plant-based bowl loaded with complex carbs and fiber."
     )
@@ -81,7 +82,7 @@ object DemoMeals {
         name = "Beef & Broccoli Stir Fry",
         calories = 480,
         protein = 30,
-        tags = listOf("beef", "vegetables", "quick"),
+        tags = listOf("beef", "asian", "savory", "vegetables", "quick"),
         emoji = "🍳",
         description = "A fast, savory weeknight staple with crisp veggies and tender steak."
     )
@@ -91,7 +92,7 @@ object DemoMeals {
         name = "Greek Yogurt Parfait",
         calories = 220,
         protein = 20,
-        tags = listOf("snack", "breakfast", "sweet"),
+        tags = listOf("snack", "breakfast", "sweet", "high-protein"),
         emoji = "🍨",
         description = "A sweet, protein-rich snack layered with berries and granola."
     )
@@ -101,7 +102,7 @@ object DemoMeals {
         name = "Black Bean Veggie Burger",
         calories = 410,
         protein = 15,
-        tags = listOf("vegetarian", "burger", "plant-based"),
+        tags = listOf("vegetarian", "burger", "savory", "plant-based"),
         emoji = "🍔",
         description = "A satisfying meat-free alternative that goes great with sweet potato fries."
     )
@@ -121,7 +122,7 @@ object DemoMeals {
         name = "Classic Tuna Salad",
         calories = 340,
         protein = 26,
-        tags = listOf("fish", "lower-carb", "quick"),
+        tags = listOf("fish", "seafood", "lower-carb", "quick"),
         emoji = "🥫",
         description = "A simple, low-carb staple that takes minutes to prepare."
     )
@@ -131,7 +132,7 @@ object DemoMeals {
         name = "Margherita Pizza",
         calories = 750,
         protein = 24,
-        tags = listOf("pizza", "comfort", "higher-calorie"),
+        tags = listOf("italian", "pizza", "savory", "comfort", "higher-calorie"),
         emoji = "🍕",
         description = "A delicious Italian classic perfect for a weekend cheat meal or refeed."
     )
@@ -141,7 +142,7 @@ object DemoMeals {
         name = "Spicy Tuna Roll",
         calories = 320,
         protein = 14,
-        tags = listOf("sushi", "fish", "lighter-option"),
+        tags = listOf("japanese", "sushi", "fish", "spicy", "lighter-option"),
         emoji = "🍣",
         description = "A light and flavorful roll perfect for a quick bite."
     )
@@ -151,7 +152,7 @@ object DemoMeals {
         name = "Chicken Tikka Masala",
         calories = 550,
         protein = 38,
-        tags = listOf("curry", "chicken", "comfort"),
+        tags = listOf("indian", "curry", "chicken", "spicy", "comfort"),
         emoji = "🍛",
         description = "A rich and warming curry packed with protein."
     )
@@ -171,7 +172,7 @@ object DemoMeals {
         name = "Street Steak Tacos",
         calories = 450,
         protein = 28,
-        tags = listOf("beef", "mexican", "quick"),
+        tags = listOf("beef", "mexican", "savory", "quick"),
         emoji = "🌮",
         description = "Savory grilled steak on corn tortillas with fresh cilantro and onion."
     )
@@ -181,7 +182,7 @@ object DemoMeals {
         name = "Mediterranean Quinoa Salad",
         calories = 310,
         protein = 10,
-        tags = listOf("vegetarian", "salad", "light"),
+        tags = listOf("mediterranean", "vegetarian", "salad", "light"),
         emoji = "🥗",
         description = "A refreshing, grain-based salad with feta and olives."
     )
@@ -191,7 +192,7 @@ object DemoMeals {
         name = "Tonkotsu Pork Ramen",
         calories = 600,
         protein = 25,
-        tags = listOf("soup", "noodles", "comfort"),
+        tags = listOf("japanese", "soup", "noodles", "savory", "comfort"),
         emoji = "🍜",
         description = "A deeply flavorful, rich broth topped with tender pork belly."
     )
@@ -201,7 +202,7 @@ object DemoMeals {
         name = "Roast Turkey Sandwich",
         calories = 400,
         protein = 30,
-        tags = listOf("lunch", "sandwich", "high-protein"),
+        tags = listOf("lunch", "sandwich", "quick", "high-protein"),
         emoji = "🥪",
         description = "A classic deli favorite loaded with lean meat."
     )
@@ -211,7 +212,7 @@ object DemoMeals {
         name = "Eggplant Parmesan",
         calories = 480,
         protein = 18,
-        tags = listOf("vegetarian", "italian", "comfort"),
+        tags = listOf("italian", "vegetarian", "savory", "comfort"),
         emoji = "🍆",
         description = "Breaded and baked eggplant layered with marinara and melted cheese."
     )
@@ -231,7 +232,7 @@ object DemoMeals {
         name = "Grilled Shrimp Skewers",
         calories = 200,
         protein = 24,
-        tags = listOf("seafood", "lower-calorie", "high-protein"),
+        tags = listOf("seafood", "savory", "lower-calorie", "high-protein"),
         emoji = "🍤",
         description = "Incredibly lean and protein-dense, perfect for cutting phases."
     )

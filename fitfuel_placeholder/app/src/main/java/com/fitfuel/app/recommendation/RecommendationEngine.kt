@@ -3,51 +3,82 @@ package com.fitfuel.app.recommendation
 import com.fitfuel.app.data.DemoMeals
 import com.fitfuel.app.model.DayEntry
 import com.fitfuel.app.model.Meal
+import com.fitfuel.app.model.RecommendedMeal
+import com.fitfuel.app.model.TagPreference
 import kotlin.math.abs
 
-/**
- * Proof-of-concept GPT stub.
- * For now it ranks the 3 demo meals using the user's current day context.
- * Later this object can be replaced by a backend/OpenAI call.
- */
 object RecommendationEngine {
 
-    data class RecommendedMeal(
-        val meal: Meal,
-        val reason: String
-    )
-
-    fun getRecommendations(dayEntry: DayEntry?): List<RecommendedMeal> {
-        val meals = DemoMeals.all
+    fun getRecommendations(
+        dayEntry: DayEntry?,
+        // 195B Weeks 5-6: Local fallback accepts the same persisted tag affinities used by FastAPI/GPT.
+        preferences: Map<String, TagPreference> = emptyMap()
+    ): List<RecommendedMeal> {
+        // 195B Weeks 5-6: Strong dislikes and calorie bounds filter the catalog before ranking whenever three choices remain.
+        val meals = filterCandidates(DemoMeals.all, dayEntry, preferences)
 
         if (dayEntry == null || dayEntry.calorieTarget == null || dayEntry.proteinTarget == null) {
             return meals.shuffled().take(3).map {
                 RecommendedMeal(
                     meal = it,
-                    reason = "Sample recommendation for the demo experience."
+                    reason = buildSampleReason(it, preferences)
                 )
             }
         }
 
-        val caloriesLeft = dayEntry.remainingCalories ?: (dayEntry.calorieTarget - (dayEntry.caloriesEaten.toIntOrNull() ?: 0))
-        val proteinLeft = dayEntry.remainingProtein ?: (dayEntry.proteinTarget - (dayEntry.proteinEaten.toIntOrNull() ?: 0))
+        val caloriesLeft = dayEntry.remainingCalories
+            ?: (dayEntry.calorieTarget - (dayEntry.caloriesEaten.toIntOrNull() ?: 0))
+        val proteinLeft = dayEntry.remainingProtein
+            ?: (dayEntry.proteinTarget - (dayEntry.proteinEaten.toIntOrNull() ?: 0))
         val goal = dayEntry.goal
 
         return meals
             .map { meal ->
-                val score = scoreMeal(meal, caloriesLeft, proteinLeft, goal)
-                RecommendedMeal(meal = meal, reason = buildReason(meal, caloriesLeft, proteinLeft, goal, score)) to score
+                val score = scoreMeal(meal, caloriesLeft, proteinLeft, goal, preferences)
+                RecommendedMeal(
+                    meal = meal,
+                    reason = buildReason(meal, caloriesLeft, proteinLeft, goal, preferences)
+                ) to score
             }
             .sortedByDescending { it.second }
             .map { it.first }
             .take(3)
     }
 
+    // 195B Weeks 5-6: Filtering respects explicit negative feedback first and hard calorie fit when enough alternatives exist.
+    private fun filterCandidates(
+        meals: List<Meal>,
+        dayEntry: DayEntry?,
+        preferences: Map<String, TagPreference>
+    ): List<Meal> {
+        val stronglyDislikedTags = preferences.values
+            .filter { it.affinityScore <= -4 }
+            .map { it.tag }
+            .toSet()
+
+        val preferenceSafeMeals = meals.filter { meal ->
+            meal.tags.none { it.lowercase() in stronglyDislikedTags }
+        }
+        val preferenceFiltered = if (preferenceSafeMeals.size >= 3) preferenceSafeMeals else meals
+
+        val caloriesLeft = dayEntry?.remainingCalories
+            ?: dayEntry?.calorieTarget?.minus(dayEntry.caloriesEaten.toIntOrNull() ?: 0)
+
+        if (caloriesLeft != null) {
+            val withinBudget = preferenceFiltered.filter { it.calories <= caloriesLeft.coerceAtLeast(0) }
+            if (withinBudget.size >= 3) return withinBudget
+        }
+
+        return preferenceFiltered
+    }
+
     private fun scoreMeal(
         meal: Meal,
         caloriesLeft: Int,
         proteinLeft: Int,
-        goal: String
+        goal: String,
+        // 195B Weeks 5-6: Learned affinity adjusts ranking only after nutrition-fit scoring has been applied.
+        preferences: Map<String, TagPreference>
     ): Double {
         var score = 0.0
 
@@ -78,6 +109,11 @@ object RecommendationEngine {
             }
         }
 
+        // 195B Weeks 5-6: Positive tags boost similar meals while negative tags reduce their rank without overriding hard filters.
+        score += meal.tags.sumOf { tag ->
+            preferences[tag.lowercase()]?.affinityScore ?: 0
+        } * 25.0
+
         return score
     }
 
@@ -86,12 +122,13 @@ object RecommendationEngine {
         caloriesLeft: Int,
         proteinLeft: Int,
         goal: String,
-        score: Double
+        // 195B Weeks 5-6: Recommendation copy can explain when a meal matches learned preferences.
+        preferences: Map<String, TagPreference>
     ): String {
         val calorieFit = if (meal.calories <= caloriesLeft) {
             "fits within today's remaining calories"
         } else {
-            "is slightly above today's remaining calories but is kept for demo comparison"
+            "is slightly above today's remaining calories but is kept for comparison"
         }
 
         val proteinFit = when {
@@ -106,6 +143,33 @@ object RecommendationEngine {
             else -> "It is being ranked for maintenance."
         }
 
-        return "${meal.name} $calorieFit and $proteinFit. $goalNote Demo score: ${score.toInt()}."
+        // 195B Weeks 5-6: Only positive learned tags are surfaced as personalization rationale.
+        val matchedPreferences = meal.tags
+            .filter { tag -> (preferences[tag.lowercase()]?.affinityScore ?: 0) > 0 }
+            .sortedByDescending { tag -> preferences[tag.lowercase()]?.affinityScore ?: 0 }
+            .take(2)
+
+        val preferenceNote = if (matchedPreferences.isEmpty()) {
+            ""
+        } else {
+            " It also matches your learned preferences for ${matchedPreferences.joinToString(" and ")}."
+        }
+
+        return "${meal.name} $calorieFit and $proteinFit. $goalNote$preferenceNote"
+    }
+
+    // 195B Weeks 5-6: Sample mode can still acknowledge prior preferences when a selected day has no nutrition targets.
+    private fun buildSampleReason(
+        meal: Meal,
+        preferences: Map<String, TagPreference>
+    ): String {
+        val matchedPreferences = meal.tags
+            .filter { tag -> (preferences[tag.lowercase()]?.affinityScore ?: 0) > 0 }
+            .take(2)
+        return if (matchedPreferences.isEmpty()) {
+            "Sample recommendation shown until daily calorie and protein targets are saved."
+        } else {
+            "Sample recommendation that also matches your learned preferences for ${matchedPreferences.joinToString(" and ")}."
+        }
     }
 }
