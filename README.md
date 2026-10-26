@@ -152,7 +152,7 @@ save the day → open Recommendations → show the three ranked meals and the so
 label → save one meal / dismiss one → return to User Stats and show the updated
 totals and preferences.
 
-**Demo video:** https://drive.google.com/file/d/1-pBeTOaMbrHi1RQev1v0bt4YqWlTw0h_/view?usp=sharing
+**Demo video:** https://drive.google.com/file/d/1n2bXdHRZtwOGMD5nn89LB1HjuR_KI8tB/view?usp=sharing
 
 > Before submitting, confirm this link is shared (public or unlisted) and shows a
 > single 3–5 minute journey; replace it if it is not the final recording.
