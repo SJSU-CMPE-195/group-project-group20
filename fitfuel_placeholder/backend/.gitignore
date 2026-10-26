@@ -1,0 +1,6 @@
+# 195B Weeks 3-4: Backend secrets and virtual environments stay local.
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc

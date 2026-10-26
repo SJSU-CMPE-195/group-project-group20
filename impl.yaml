@@ -1,0 +1,58 @@
+project_name: "FitFuel"
+project_type: "hybrid"   # Android (Kotlin) app + Python FastAPI backend
+
+impl_claim: >-
+  FitFuel calculates calorie and protein targets from user input, persists daily
+  nutrition records and meal-tag preferences with Room, and returns three goal-
+  and preference-aware meal recommendations. Recommendations are served by a
+  FastAPI service (with an optional, server-side-only OpenAI explanation step)
+  and fall back to deterministic on-device recommendations when the backend or
+  OpenAI is unavailable.
+
+languages:
+  - "kotlin"
+  - "python"
+
+# The software prototype builds, runs, is tested, and demos with no hardware.
+# A BLE fitness-band integration is documented and planned, not yet built/tested.
+hardware_required: false
+
+setup:
+  - "cd fitfuel_placeholder/backend && python3 -m pip install -r requirements.txt"
+
+build:
+  - "cd fitfuel_placeholder/backend && python3 -m compileall app"
+  - "# Android: open fitfuel_placeholder/ in Android Studio and let Gradle sync, or run: cd fitfuel_placeholder && gradle wrapper && ./gradlew assembleDebug"
+
+test:
+  - "cd fitfuel_placeholder/backend && python3 -m pytest -q"   # verified: 9 passing, no API key
+  - "# Android unit tests (needs Android SDK/Gradle): cd fitfuel_placeholder && ./gradlew testDebugUnitTest"
+  - "# Android instrumented/Room tests (needs emulator): cd fitfuel_placeholder && ./gradlew connectedDebugAndroidTest"
+
+run:
+  - "cd fitfuel_placeholder/backend && OPENAI_ENABLED=false python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+mock_mode:
+  available: true
+  commands:
+    - "cd fitfuel_placeholder/backend && OPENAI_ENABLED=false python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+  description: >-
+    With OPENAI_ENABLED=false the backend ranks meals deterministically with no
+    API key and no billable OpenAI request (source=backend_fallback). If the app
+    cannot reach the backend, it uses an on-device fallback (source=android_fallback).
+    The app is fully usable with manual and sample inputs; no hardware is required.
+
+demo:
+  video: "https://drive.google.com/file/d/1-pBeTOaMbrHi1RQev1v0bt4YqWlTw0h_/view?usp=sharing"
+  notes: >-
+    Confirm the link is shared (public or unlisted) and shows one full 3-5 minute
+    user journey before submitting; replace it if it is not the final recording.
+
+notes: >-
+  The OpenAI key is server-side only, read from a local fitfuel_placeholder/backend/.env
+  (ignored by git); it is never placed in the Android app or committed. Backend
+  tests: 9 passing, verified in mock mode on a clean machine. The Android app
+  build and its instrumented Room/Compose tests must be run in Android Studio /
+  on an emulator as the final verification step. The BLE fitness-band integration
+  is documented in docs/hardware-fitness-band-connectivity.md but is not yet
+  implemented or physically tested.
