@@ -64,6 +64,7 @@ import java.util.Locale
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.safeDrawingPadding
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
@@ -90,7 +91,7 @@ class MainActivity : ComponentActivity() {
                     val pagerState = rememberPagerState(pageCount = { 4 })
                     val scope = rememberCoroutineScope()
 
-                    Column(modifier = Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
                         TopNavigationBar(
                             currentPage = pagerState.currentPage,
                             onNavigate = { page ->
