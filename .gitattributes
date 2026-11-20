@@ -1,0 +1,3 @@
+# Preserve existing line endings.
+# Do not let Git automatically convert LF/CRLF.
+* -text
