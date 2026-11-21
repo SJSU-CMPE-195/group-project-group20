@@ -63,6 +63,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.safeDrawingPadding
 
@@ -80,6 +81,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         setContent {

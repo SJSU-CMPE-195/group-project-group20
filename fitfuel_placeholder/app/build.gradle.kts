@@ -55,6 +55,7 @@ dependencies {
 
     implementation(platform("androidx.compose:compose-bom:2025.02.00"))
     implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     // 195B Weeks 1-2: Lifecycle-aware state collection and ViewModel coroutine support.
